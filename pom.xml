@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>fr.utln</groupId>
+  <artifactId>jmonkey</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>JMonkey Project</name>
+  <description>JMonkey project</description>
+  <url>https://www.seinturier.fr/</url>
+
+  <licenses>
+    <license>
+      <name>The GNU Lesser General Public License, Version 3.0</name>
+      <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <developers>
+    <developer>
+      <id>jseinturier</id>
+      <name>Julien Seinturier</name>
+      <email>julien.seinturier@univ-tln.fr</email>
+      <url>http://www.seinturier.fr</url>
+      <organization>Université de Toulon</organization>
+      <organizationUrl>http://www.univ-tln.fr</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>France/Paris</timezone>
+      <properties>
+        <!-- <picUrl>http://www.example.com/jdoe/pic</picUrl> -->
+      </properties>
+    </developer>
+  </developers>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <javadoc.opts>-Xdoclint:none --allow-script-in-comments</javadoc.opts>
+    
+	<!-- JMonkeyEngine -->
+    <jme3_g>org.jmonkeyengine</jme3_g>
+    <jme3_v>3.5.1-stable</jme3_v>
+	
+    <maven.compiler.release>8</maven.compiler.release>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+    
+    <maven.plugin.compiler.version>3.8.1</maven.plugin.compiler.version>
+    <maven.plugin.deploy.version>3.1.1</maven.plugin.deploy.version>
+    <maven.plugin.javadoc.version>3.1.1</maven.plugin.javadoc.version>
+    <maven.plugin.release.version>3.0.0-M1</maven.plugin.release.version>
+    <maven.plugin.nexus.version>1.6.8</maven.plugin.nexus.version>
+    <maven.plugin.source.version>3.2.0</maven.plugin.source.version>
+    <maven.plugin.scm-provider-gitexe.version>1.11.12</maven.plugin.scm-provider-gitexe.version>
+
+  </properties>
+
+  
+  <dependencies>
+  
+	<!-- JMonkeyEngine -->   
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-core</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-desktop</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-effects</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-jbullet</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-lwjgl3</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-networking</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-niftygui</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-plugins</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-terrain</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>${jme3_g}</groupId>
+      <artifactId>jme3-vr</artifactId>
+      <version>${jme3_v}</version>
+    </dependency>
+
+	
+  </dependencies>
+  
+  <build>
+    <plugins>
+
+      <!--  Compile sources -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.plugin.compiler.version}</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+    
+      <!-- Generate sources jar during package phase 
+           equivalent to maven sources:jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+		<version>${maven.plugin.source.version}</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate apidoc jar during package phase 
+           equivalent to maven javadoc:jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+		<version>${maven.plugin.javadoc.version}</version>
+		
+		<!-- Embedding Latex formulas within javadoc using MathJax-->
+		<configuration>
+
+          <additionalJOptions>
+            <additionalJOption>--allow-script-in-comments</additionalJOption>
+          </additionalJOptions>
+          <header>'&lt;script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"&gt;&lt;/script&gt;'</header>
+        </configuration>  
+        
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+	  
+	  <!-- Software distribution -->
+      <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.3.0</version>
+            <executions>
+              <execution>
+                <id>distro-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/assembly/dep.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+       </plugin>
+    </plugins>
+  </build>
+</project>

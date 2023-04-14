@@ -18,6 +18,8 @@ import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
+import static java.lang.Math.random;
+
 /**
  * Example 12 - how to give objects physical properties so they bounce and fall.
  * @author base code by double1984, updated by zathras
@@ -35,7 +37,7 @@ public class HelloPhysics extends SimpleApplication {
 
     /** Prepare Materials */
     private Material wall_mat;
-    private Material[] wall_mats = new Material[24];
+
     private Material stone_mat;
     private Material floor_mat;
 
@@ -51,6 +53,10 @@ public class HelloPhysics extends SimpleApplication {
     private static final float brickLength = 0.3f;
     private static final float brickWidth  = 0.3f;
     private static final float brickHeight = 0.3f;
+    private static int nombreAleatoire = 4 + (int)(Math.random() * 5);
+    private static int nMur = nombreAleatoire*7;
+
+    private Material[] wall_mats = new Material[nMur];
 
     static {
         /** Initialize the cannon ball geometry */
@@ -58,7 +64,7 @@ public class HelloPhysics extends SimpleApplication {
         sphere.setTextureMode(TextureMode.Projected);
         /** Initialize the brick geometry */
         box = new Box(brickLength, brickHeight, brickWidth);
-        box.scaleTextureCoordinates(new Vector2f(1f, .5f));
+        box.scaleTextureCoordinates(new Vector2f(1f, 1f));
         /** Initialize the floor geometry */
         floor = new Box(10f, 0.1f, 5f);
         stra = new Box(5f, 0.05f, 4f);
@@ -81,6 +87,12 @@ public class HelloPhysics extends SimpleApplication {
         initWall();
         initFloor();
         initCrossHairs();
+        BitmapText annance = new BitmapText(guiFont);
+        annance.setSize(guiFont.getCharSet().getRenderedSize());
+
+        annance.setText("essayer de trouver un mot de "+nombreAleatoire+" de lettres");
+        annance.setLocalTranslation(700, 1000, 0);
+        guiNode.attachChild(annance);
     }
 
     /** Add InputManager action: Left click triggers shooting. */
@@ -106,13 +118,14 @@ public class HelloPhysics extends SimpleApplication {
     public void initMaterials() {
         TextureKey key;
         Texture tex;
-
-        for(int i=0; i<24; i++){
+        for(int i=0; i<nMur; i++){
             wall_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-            key = new TextureKey("Textures/Lettres/"+i+".jpg");
+            int lettreAlea =  (int)(Math.random() * 20);
+            key = new TextureKey("Textures/Lettres/"+lettreAlea+".jpg");
             key.setGenerateMips(true);
             tex = assetManager.loadTexture(key);
             wall_mat.setTexture("ColorMap", tex);
+
             wall_mats[i] = wall_mat;
         }
         stone_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -146,10 +159,10 @@ public class HelloPhysics extends SimpleApplication {
         float startX = brickLength / 4;
         float height = 0;
         int tmp = 0 ;
+        int n = nMur /6 ;
         for (int j = 0; j < 6; j++) {
-            for (int i = 0; i < 4; i++) {
-                Vector3f vt =
-                        new Vector3f(i * brickLength * 2 + startX, brickHeight + height, 0);
+            for (int i = 0; i < n; i++) {
+                Vector3f vt = new Vector3f(i * brickLength * 2 + startX, brickHeight + height, 0);
                 makeBrick(vt, wall_mats[tmp]);
                 tmp ++ ;
             }
@@ -167,10 +180,10 @@ public class HelloPhysics extends SimpleApplication {
         /** Position the brick geometry  */
         brick_geo.setLocalTranslation(loc);
         /* Make brick physical with a mass > 0. */
-        RigidBodyControl brick_phy = new RigidBodyControl(2f);
+        //RigidBodyControl brick_phy = new RigidBodyControl(2f);
         /** Add physical brick to physics space. */
-        brick_geo.addControl(brick_phy);
-        bulletAppState.getPhysicsSpace().add(brick_phy);
+       // brick_geo.addControl(brick_phy);
+        //bulletAppState.getPhysicsSpace().add(brick_phy);
     }
     /** Creates one physical cannonball.
      * By default, the ball is accelerated and flies

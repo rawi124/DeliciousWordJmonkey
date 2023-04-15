@@ -47,17 +47,19 @@ public class HelloPhysics extends SimpleApplication {
     private static final Box    floor;
 
     /** dimensions used for bricks and wall */
-    private static final float brickLength = 0.25f;
-    private static final float brickWidth  = 0.25f;
-    private static final float brickHeight = 0.25f;
+    private static final float brickLength = 0.28f;
+    private static final float brickWidth  = 0.28f;
+    private static final float brickHeight = 0.28f;
 
     private static int Max = 6 ;
     private static int Min = 3 ;
     private static int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
-    private static int nMur = nombreAleatoire*8;
+    private static int nMur = nombreAleatoire*10;
+    private static int frappe = 0 ;
     private Material[] wall_mats = new Material[nMur];
     private String mot = "";
     private String alph = "abcdefghijklmnopqrstuvwxyz";
+
     private int[] names = new int[nMur];
     static {
         /** Initialize the cannon ball geometry */
@@ -84,9 +86,8 @@ public class HelloPhysics extends SimpleApplication {
 
         /** Configure cam to look at scene */
         cam.setLocation(new Vector3f(0, 4f, 6f));
-        cam.lookAt(new Vector3f(2, 2, 0), Vector3f.UNIT_Y);
+        cam.lookAt(new Vector3f(1, 2, 0), Vector3f.UNIT_Y);
         /** Initialize the scene, materials, inputs, and physics space */
-
         initMark();
         initMaterials();
         initWall();
@@ -103,10 +104,11 @@ public class HelloPhysics extends SimpleApplication {
         guiNode.attachChild(annance);
     }
     private void initMark() {
-        Sphere sphere = new Sphere(30, 30, 0.2f);
+        Sphere sphere = new Sphere(20, 20, 0.2f);
         mark = new Geometry("BOOM!", sphere);
         Material mark_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mark_mat.setColor("Color", ColorRGBA.Red);
+        Texture texture = assetManager.loadTexture("Textures/dd.jpg");
+        mark_mat.setTexture("ColorMap", texture);
         mark.setMaterial(mark_mat);
     }
     private void initKeys() {
@@ -120,6 +122,7 @@ public class HelloPhysics extends SimpleApplication {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("Shoot") && !keyPressed) {
+                frappe ++ ;
                 // 1. Reset results list.
                 CollisionResults results = new CollisionResults();
                 // 2. Aim the ray from cam loc to cam direction.
@@ -127,55 +130,34 @@ public class HelloPhysics extends SimpleApplication {
                 // 3. Collect intersections between Ray and Shootables in results list.
                 shootables.collideWith(ray, results);
                 // 4. Print the results
-                System.out.println("----- Collisions? " + results.size() + "-----");
                 if (results.size() > 0) {
                     // For each hit, we know distance, impact point, name of geometry.
                     String hit = results.getCollision(0).getGeometry().getName();
-                    System.out.println("  You shot " + hit );
                     int x = Integer.parseInt(hit);
                     mot = mot + alph.charAt(x);
-                    System.out.println(mot);
-                    boolean var = VerifMot.verif(mot);
-                    System.out.println(var);
-                    if(var){
-                        ParticleEmitter fire =
-                                new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
-                        Material mat_red = new Material(assetManager,
-                                "Common/MatDefs/Misc/Particle.j3md");
-                        mat_red.setTexture("Texture", assetManager.loadTexture(
-                                "Effects/Explosion/flame.png"));
-                        fire.setMaterial(mat_red);
-                        fire.setImagesX(2);
-                        fire.setImagesY(2); // 2x2 texture animation
-                        fire.setEndColor(  new ColorRGBA(1f, 0f, 0f, 1f));   // red
-                        fire.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
-                        fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
-                        fire.setStartSize(1.5f);
-                        fire.setEndSize(0.1f);
-                        fire.setGravity(0, 0, 0);
-                        fire.setLowLife(1f);
-                        fire.setHighLife(3f);
-                        fire.getParticleInfluencer().setVelocityVariation(0.3f);
-                        rootNode.attachChild(fire);
-
-                        ParticleEmitter debris =
-                                new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 10);
-                        Material debris_mat = new Material(assetManager,
-                                "Common/MatDefs/Misc/Particle.j3md");
-                        debris_mat.setTexture("Texture", assetManager.loadTexture(
-                                "Effects/Explosion/Debris.png"));
-                        debris.setMaterial(debris_mat);
-                        debris.setImagesX(3);
-                        debris.setImagesY(3); // 3x3 texture animation
-                        debris.setRotateSpeed(4);
-                        debris.setSelectRandomImage(true);
-                        debris.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 4, 0));
-                        debris.setStartColor(ColorRGBA.White);
-                        debris.setGravity(0, 6, 0);
-                        debris.getParticleInfluencer().setVelocityVariation(.60f);
-                        rootNode.attachChild(debris);
-                        debris.emitAllParticles();
-
+                    if(frappe == nombreAleatoire){
+                        ParticleEmitter candy = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+                        Material mat_candy = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+                        if(VerifMot.verif(mot)){
+                            mat_candy.setTexture("Texture", assetManager.loadTexture("Textures/vv.jpg")); // chargez la texture de bonbon
+                        }
+                        else {
+                            mat_candy.setTexture("Texture", assetManager.loadTexture("Textures/ff.jpg")); // chargez la texture de bonbon
+                        }
+                        candy.setMaterial(mat_candy);
+                        candy.setImagesX(2);
+                        candy.setImagesY(2); // 2x2 texture animation
+                        //candy.setEndColor(new ColorRGBA(1f, 0f, 0f, 1f));   // red
+                        //candy.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
+                        candy.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
+                        candy.setStartSize(1.5f);
+                        candy.setEndSize(0.1f);
+                        candy.setGravity(0, 0, 0);
+                        candy.setLowLife(1f);
+                        candy.setHighLife(3f);
+                        candy.getParticleInfluencer().setVelocityVariation(0.3f);
+                        rootNode.attachChild(candy);
+                        candy.emitAllParticles();
                     }
                 }
                 // 5. Use the results (we mark the hit object)
@@ -226,10 +208,9 @@ public class HelloPhysics extends SimpleApplication {
         floor_geo.addControl(floor_phy);
         bulletAppState.getPhysicsSpace().add(floor_phy);
     }
-
     /** This loop builds a wall out of individual bricks. */
     public void initWall() {
-        float startX = brickLength / 4;
+        float startX = brickLength / 4 - 2;
         float height = 0;
         int tmp = 0 ;
         int n = nMur /6 ;
@@ -251,14 +232,12 @@ public class HelloPhysics extends SimpleApplication {
     }
     /** A plus sign used as crosshairs to help the player with aiming.*/
     private void initCrossHairs() {
-        setDisplayStatView(false);
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
         BitmapText ch = new BitmapText(guiFont);
         ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
-        ch.setColor("Color", ColorRGBA.Red);
-        ch.setText("+"); // crosshairs
-
-        ch.setLocalTranslation( // center
+        ch.setColor("Color", ColorRGBA.Black); // changer la couleur en noir
+        ch.setText("+"); // croix
+        ch.setLocalTranslation( // centrer
                 settings.getWidth() / 2 - ch.getLineWidth()/2, settings.getHeight() / 2 + ch.getLineHeight()/2, 0);
         guiNode.attachChild(ch);
     }

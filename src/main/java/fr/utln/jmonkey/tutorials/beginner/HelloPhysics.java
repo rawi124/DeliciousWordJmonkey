@@ -24,6 +24,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
@@ -74,7 +75,7 @@ public class HelloPhysics extends SimpleApplication {
         box.scaleTextureCoordinates(new Vector2f(1f, 1f));
         /** Initialize the floor geometry */
         floor = new Box(10f, 0.1f, 5f);
-        // floor.scaleTextureCoordinates(new Vector2f(6, 6));
+        //floor.scaleTextureCoordinates(new Vector2f(2, 6));
     }
     private Geometry mark;
     private Node shootables;
@@ -296,4 +297,7 @@ public class HelloPhysics extends SimpleApplication {
                 settings.getWidth() / 2 - ch.getLineWidth()/2, settings.getHeight() / 2 + ch.getLineHeight()/2, 0);
         guiNode.attachChild(ch);
     }
+
+
+
 }

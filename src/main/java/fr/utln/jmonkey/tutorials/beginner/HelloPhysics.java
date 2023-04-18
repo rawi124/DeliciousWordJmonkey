@@ -48,11 +48,11 @@ public class HelloPhysics extends SimpleApplication {
     private static final Box    floor;
 
     /** dimensions used for bricks and wall */
-    private static final float brickLength = 0.28f;
-    private static final float brickWidth  = 0.28f;
-    private static final float brickHeight = 0.28f;
+    private static final float brickLength = 0.20f;
+    private static final float brickWidth  = 0.20f;
+    private static final float brickHeight = 0.20f;
 
-    private static int Max = 3 ;
+    private static int Max = 6 ;
     private static int Min = 3 ;
     private static int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
     private static int nMur = nombreAleatoire*10;
@@ -64,6 +64,9 @@ public class HelloPhysics extends SimpleApplication {
     private Geometry[] gemotries = new Geometry[nMur];
 
     private Vector3f[] vects = new Vector3f[nMur];
+    private BitmapText motForme ;
+    private int xm, ym ;
+
 
     private int[] names = new int[nMur];
     static {
@@ -88,7 +91,6 @@ public class HelloPhysics extends SimpleApplication {
         shootables = new Node("Shootables");
         rootNode.attachChild(shootables);
 
-
         /** Configure cam to look at scene */
         cam.setLocation(new Vector3f(0, 4f, 6f));
         cam.lookAt(new Vector3f(1, 2, 0), Vector3f.UNIT_Y);
@@ -99,13 +101,16 @@ public class HelloPhysics extends SimpleApplication {
         initFloor();
         initKeys();
         initCrossHairs();
+        xm = -4 ;
+        ym = 3 ;
         BitmapText annance = new BitmapText(guiFont);
-        BitmapText motFormé = new BitmapText(guiFont);
+        motForme = new BitmapText(guiFont);
         annance.setSize(guiFont.getCharSet().getRenderedSize());
-        motFormé.setSize(guiFont.getCharSet().getRenderedSize());
-        motFormé.setLocalTranslation(700, 1000, 0);
+        motForme.setSize(guiFont.getCharSet().getRenderedSize());
+        motForme.setLocalTranslation(700, 1000, 0);
         annance.setText("essayer de trouver un mot de "+nombreAleatoire+" de lettres dans cette grille de "+nMur+" lettres");
         annance.setLocalTranslation(500, 1000, 0);
+        guiNode.attachChild(motForme);
         guiNode.attachChild(annance);
     }
     private void initMark() {
@@ -140,18 +145,30 @@ public class HelloPhysics extends SimpleApplication {
                     String hit = results.getCollision(0).getGeometry().getName();
                     int x = Integer.parseInt(hit);
                     mot = mot + alph.charAt(x);
+                    Geometry brick_geo = new Geometry(hit, box);
+                    TextureKey key;
+                    Texture tex;
+                    wall_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                    key = new TextureKey("Textures/Lettres/"+hit+".jpg");
+                    key.setGenerateMips(true);
+                    tex = assetManager.loadTexture(key);
+                    wall_mat.setTexture("ColorMap", tex);
+                    brick_geo.setMaterial(wall_mat);
+                    shootables.attachChild(brick_geo);
+                    Vector3f vt = new Vector3f(xm ,ym, 0);
+                    xm += 0.95 ;
+                    brick_geo.setLocalTranslation(vt);
                     if(frappe == nombreAleatoire){
-
-                        if(VerifMot.verif(mot)){
-                            ParticleEmitter fire =
-                                    new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
-                            Material mat_red = new Material(assetManager,
-                                    "Common/MatDefs/Misc/Particle.j3md");
-                            mat_red.setTexture("Texture", assetManager.loadTexture(
-                                    "Effects/Explosion/flame.png"));
-                            fire.setMaterial(mat_red);
-                            fire.setImagesX(2);
-                            fire.setImagesY(2); // 2x2 texture animation
+                        ParticleEmitter fire =
+                                new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
+                        Material mat_red = new Material(assetManager,
+                                "Common/MatDefs/Misc/Particle.j3md");
+                        mat_red.setTexture("Texture", assetManager.loadTexture(
+                                "Effects/Explosion/flame.png"));
+                        fire.setMaterial(mat_red);
+                        fire.setImagesX(2);
+                        fire.setImagesY(2); // 2x2 texture animation
+                        if(!VerifMot.verif(mot)){
                             fire.setEndColor(  new ColorRGBA(1f, 0f, 0f, 1f));   // red
                             fire.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
                             fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
@@ -162,29 +179,21 @@ public class HelloPhysics extends SimpleApplication {
                             fire.setHighLife(3f);
                             fire.getParticleInfluencer().setVelocityVariation(0.3f);
                             rootNode.attachChild(fire);
-
-                            ParticleEmitter debris =
-                                    new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 10);
-                            Material debris_mat = new Material(assetManager,
-                                    "Common/MatDefs/Misc/Particle.j3md");
-                            debris_mat.setTexture("Texture", assetManager.loadTexture(
-                                    "Effects/Explosion/Debris.png"));
-                            debris.setMaterial(debris_mat);
-                            debris.setImagesX(3);
-                            debris.setImagesY(3); // 3x3 texture animation
-                            debris.setRotateSpeed(4);
-                            debris.setSelectRandomImage(true);
-                            debris.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 4, 0));
-                            debris.setStartColor(ColorRGBA.White);
-                            debris.setGravity(0, 6, 0);
-                            debris.getParticleInfluencer().setVelocityVariation(.60f);
-                            rootNode.attachChild(debris);
-                            debris.emitAllParticles();
-                            //mat_candy.setTexture("Texture", assetManager.loadTexture("Textures/vv.jpg")); // chargez la texture de bonbon
-                            explose(vects);
+                            disparait(vects);
                         }
                         else {
-                            //mat_candy.setTexture("Texture", assetManager.loadTexture("Textures/ff.jpg")); // chargez la texture de bonbon
+                            fire.setEndColor(ColorRGBA.randomColor());
+                            fire.setStartColor(ColorRGBA.randomColor());
+                            fire.getParticleInfluencer().setInitialVelocity(new Vector3f(-1, 2, 0));
+                            fire.setStartSize(3f);
+                            fire.setEndSize(0.5f);
+                            fire.setGravity(0, 0, 0);
+                            fire.setLowLife(1f);
+                            fire.setHighLife(5f);
+                            fire.getParticleInfluencer().setVelocityVariation(0.3f);
+                            rootNode.attachChild(fire);
+                            explose(vects);
+                            
                         }
 
                     }
@@ -248,7 +257,6 @@ public class HelloPhysics extends SimpleApplication {
                 Vector3f vt = new Vector3f(i * brickLength * 2 + startX, brickHeight + height, 0);
                 makeBrick(vt, wall_mats[tmp], names[tmp], tmp);
                 vects[tmp] = vt ;
-
                 tmp ++ ;
             }
             height += 2 * brickHeight;
@@ -261,14 +269,12 @@ public class HelloPhysics extends SimpleApplication {
         shootables.attachChild(brick_geo);
         brick_geo.setLocalTranslation(loc);
         gemotries[tmp] = brick_geo ;
-
     }
     private void explose(Vector3f[] vects) {
         int tmp = 0 ;
         int n = nMur /6 ;
         float startX = brickLength / 4 - 2;
         float height = 0;
-
         for (int j = 0; j < 6; j++) {
             for (int i = 0; i < n; i++) {
                 Vector3f vt = new Vector3f(i * brickLength * 2 + startX, brickHeight + height , 1);
@@ -282,8 +288,26 @@ public class HelloPhysics extends SimpleApplication {
             }
             height += 1.5 * brickHeight;
         }
+    }
 
-
+    private void disparait(Vector3f[] vects) {
+        int tmp = 0 ;
+        int n = nMur /6 ;
+        float startX = brickLength / 4 - 2;
+        float height = 0;
+        for (int j = 0; j < 6; j++) {
+            for (int i = 0; i < n; i++) {
+                Vector3f vt = new Vector3f(i * brickLength * 100 + startX, brickHeight + height , 100);
+                gemotries[tmp].setLocalTranslation(vt);
+                RigidBodyControl brick_phy = new RigidBodyControl(2f);
+                /** Add physical brick to physics space. */
+                gemotries[tmp].addControl(brick_phy);
+                bulletAppState.getPhysicsSpace().add(brick_phy);
+                /** Add physical brick to physics space. */
+                tmp ++ ;
+            }
+            height += 100 * brickHeight;
+        }
     }
 
     /** A plus sign used as crosshairs to help the player with aiming.*/

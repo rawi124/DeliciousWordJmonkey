@@ -27,6 +27,11 @@ import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import com.jme3.app.FlyCamAppState;
+import com.jme3.app.SimpleApplication;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
+import com.jme3.system.AppSettings;
 
 import static java.lang.Math.random;
 
@@ -37,14 +42,22 @@ import static java.lang.Math.random;
 public class HelloPhysics extends SimpleApplication {
 
     public static void main(String args[]) {
+        AppSettings settings = new AppSettings(true);
+        settings.setTitle("DeliciousWord");
+
         HelloPhysics app = new HelloPhysics();
+        app.setSettings(settings);
         app.start();
     }
+    final static float TOTAL_SECOND = 30;
+    float timeInSecond;
+    final static String FORMAT = "Le jeu sera fini dans  %.1fs.";
+    BitmapText uiText;
     private BulletAppState bulletAppState;
     private Material wall_mat;
     private Material floor_mat;
     private static final Box    box;
-    private static final Sphere sphere;
+    private static  Sphere sphere;
     private static final Box    floor;
 
     /** dimensions used for bricks and wall */
@@ -64,15 +77,15 @@ public class HelloPhysics extends SimpleApplication {
     private Geometry[] gemotries = new Geometry[nMur];
 
     private Vector3f[] vects = new Vector3f[nMur];
-    private BitmapText motForme ;
-    private int xm, ym ;
 
+    private BitmapText ch ;
+    private int xm, ym ;
 
     private int[] names = new int[nMur];
     static {
         /** Initialize the cannon ball geometry */
-        sphere = new Sphere(32, 32, 0.4f, true, false);
-        sphere.setTextureMode(TextureMode.Projected);
+        //sphere = new Sphere(32, 32, 0.4f, true, false);
+        //sphere.setTextureMode(TextureMode.Projected);
         /** Initialize the brick geometry */
         box = new Box(brickLength, brickHeight, brickWidth);
         box.scaleTextureCoordinates(new Vector2f(1f, 1f));
@@ -104,22 +117,27 @@ public class HelloPhysics extends SimpleApplication {
         xm = -4 ;
         ym = 3 ;
         BitmapText annance = new BitmapText(guiFont);
-        motForme = new BitmapText(guiFont);
         annance.setSize(guiFont.getCharSet().getRenderedSize());
-        motForme.setSize(guiFont.getCharSet().getRenderedSize());
-        motForme.setLocalTranslation(700, 1000, 0);
         annance.setText("essayer de trouver un mot de "+nombreAleatoire+" de lettres dans cette grille de "+nMur+" lettres");
-        annance.setLocalTranslation(500, 1000, 0);
-        guiNode.attachChild(motForme);
+        annance.setLocalTranslation(800, 1000, 0);
+
+        timeInSecond = 0;
+
+        BitmapFont fnt = assetManager.loadFont("Interface/Fonts/Default.fnt");
+
+        uiText = new BitmapText(fnt, false);
+        uiText.setText(String.format(FORMAT, TOTAL_SECOND-timeInSecond));
+        guiNode.attachChild(uiText);
         guiNode.attachChild(annance);
     }
     private void initMark() {
-        Sphere sphere = new Sphere(20, 20, 0.2f);
+        sphere = new Sphere(20, 20, 0.2f);
         mark = new Geometry("BOOM!", sphere);
         Material mark_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        Texture texture = assetManager.loadTexture("Textures/dd.jpg");
+        Texture texture = assetManager.loadTexture("Textures/bon.jpg");
         mark_mat.setTexture("ColorMap", texture);
         mark.setMaterial(mark_mat);
+
     }
     private void initKeys() {
         inputManager.addMapping("Shoot",
@@ -172,13 +190,17 @@ public class HelloPhysics extends SimpleApplication {
                             fire.setEndColor(  new ColorRGBA(1f, 0f, 0f, 1f));   // red
                             fire.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
                             fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
-                            fire.setStartSize(1.5f);
-                            fire.setEndSize(0.1f);
+                            fire.setStartSize(3f);
+                            fire.setEndSize(0.5f);
                             fire.setGravity(0, 0, 0);
                             fire.setLowLife(1f);
-                            fire.setHighLife(3f);
+                            fire.setHighLife(5f);
                             fire.getParticleInfluencer().setVelocityVariation(0.3f);
                             rootNode.attachChild(fire);
+
+                            ch.setColor(ColorRGBA.randomColor());
+                            ch.setText("Perdu !! tu n'as pas reussi à trouver  un mot de "+frappe+" lettres !");
+                            guiNode.detachChild(uiText);
                             disparait(vects);
                         }
                         else {
@@ -192,10 +214,11 @@ public class HelloPhysics extends SimpleApplication {
                             fire.setHighLife(5f);
                             fire.getParticleInfluencer().setVelocityVariation(0.3f);
                             rootNode.attachChild(fire);
+                            guiNode.detachChild(uiText);
+                            ch.setColor(ColorRGBA.randomColor());
+                            ch.setText("Bravo !! tu as trouvé un mot de "+frappe+ " lettres avant la fin");
                             explose(vects);
-                            
                         }
-
                     }
                 }
                 // 5. Use the results (we mark the hit object)
@@ -289,7 +312,6 @@ public class HelloPhysics extends SimpleApplication {
             height += 1.5 * brickHeight;
         }
     }
-
     private void disparait(Vector3f[] vects) {
         int tmp = 0 ;
         int n = nMur /6 ;
@@ -309,17 +331,28 @@ public class HelloPhysics extends SimpleApplication {
             height += 100 * brickHeight;
         }
     }
-
     /** A plus sign used as crosshairs to help the player with aiming.*/
     private void initCrossHairs() {
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-        BitmapText ch = new BitmapText(guiFont);
+        ch = new BitmapText(guiFont);
         ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
-        ch.setColor("Color", ColorRGBA.Black); // changer la couleur en noir
+        //ch.setColor("Color", ColorRGBA.Black); // changer la couleur en noir
         ch.setText("+"); // croix
         ch.setLocalTranslation( // centrer
                 settings.getWidth() / 2 - ch.getLineWidth()/2, settings.getHeight() / 2 + ch.getLineHeight()/2, 0);
         guiNode.attachChild(ch);
+    }
+    @Override
+    public void simpleUpdate(float tpf) {
+
+        timeInSecond += tpf;
+        uiText.setText(String.format(FORMAT, TOTAL_SECOND-timeInSecond));
+        uiText.setLocalTranslation(500, 1000, 0);
+        // update gui
+
+        if (timeInSecond >= TOTAL_SECOND) {
+            stop();
+        }
     }
 
 

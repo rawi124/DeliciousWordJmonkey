@@ -15,10 +15,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
+import com.jme3.math.*;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
@@ -177,24 +174,25 @@ public class HelloPhysics extends SimpleApplication {
                     xm += 0.95 ;
                     brick_geo.setLocalTranslation(vt);
                     if(frappe == nombreAleatoire){
-                        ParticleEmitter fire =
-                                new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30);
-                        Material mat_red = new Material(assetManager,
-                                "Common/MatDefs/Misc/Particle.j3md");
-                        mat_red.setTexture("Texture", assetManager.loadTexture(
-                                "Effects/Explosion/flame.png"));
-                        fire.setMaterial(mat_red);
-                        fire.setImagesX(2);
-                        fire.setImagesY(2); // 2x2 texture animation
+
                         if(!VerifMot.verif(mot)){
-                            fire.setEndColor(  new ColorRGBA(1f, 0f, 0f, 1f));   // red
-                            fire.setStartColor(new ColorRGBA(1f, 1f, 0f, 0.5f)); // yellow
-                            fire.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 2, 0));
-                            fire.setStartSize(3f);
+                            ParticleEmitter fire =
+                                    new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 25);
+                            Material mat_red = new Material(assetManager,
+                                    "Common/MatDefs/Misc/Particle.j3md");
+                            mat_red.setTexture("Texture", assetManager.loadTexture(
+                                    "Effects/Explosion/flame.png"));
+                            fire.setMaterial(mat_red);
+                            fire.setImagesX(2);
+                            fire.setImagesY(2); // 2x2 texture animation
+                            fire.setEndColor(ColorRGBA.randomColor());
+                            fire.setStartColor(ColorRGBA.randomColor());
+                            fire.getParticleInfluencer().setInitialVelocity(new Vector3f(-1, 2, 0));
+                            fire.setStartSize(2f);
                             fire.setEndSize(0.5f);
                             fire.setGravity(0, 0, 0);
                             fire.setLowLife(1f);
-                            fire.setHighLife(5f);
+                            fire.setHighLife(4f);
                             fire.getParticleInfluencer().setVelocityVariation(0.3f);
                             rootNode.attachChild(fire);
 
@@ -204,19 +202,35 @@ public class HelloPhysics extends SimpleApplication {
                             disparait(vects);
                         }
                         else {
-                            fire.setEndColor(ColorRGBA.randomColor());
-                            fire.setStartColor(ColorRGBA.randomColor());
-                            fire.getParticleInfluencer().setInitialVelocity(new Vector3f(-1, 2, 0));
-                            fire.setStartSize(3f);
-                            fire.setEndSize(0.5f);
-                            fire.setGravity(0, 0, 0);
-                            fire.setLowLife(1f);
-                            fire.setHighLife(5f);
-                            fire.getParticleInfluencer().setVelocityVariation(0.3f);
-                            rootNode.attachChild(fire);
+                            ParticleEmitter debris ;
+                            debris = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 700 );
+                            debris.setSelectRandomImage(true);
+                            debris.setRandomAngle(true);
+                            debris.setRotateSpeed(FastMath.TWO_PI * 4);
+                            debris.setStartColor(new ColorRGBA(1f, 0.59f, 0.28f, 1.0f / 1f));
+                            debris.setEndColor(new ColorRGBA(.5f, 0.5f, 0.5f, 0f));
+                            debris.setStartSize(.2f);
+                            debris.setEndSize(.2f);
+
+//        debris.setShape(new EmitterSphereShape(Vector3f.ZERO, .05f));
+                            debris.setParticlesPerSec(0);
+                            debris.setGravity(0, 12f, 0);
+                            debris.setLowLife(1.4f);
+                            debris.setHighLife(1.5f);
+                            debris.getParticleInfluencer()
+                                    .setInitialVelocity(new Vector3f(0, 15, 0));
+                            debris.getParticleInfluencer().setVelocityVariation(.60f);
+                            debris.setImagesX(3);
+                            debris.setImagesY(3);
+                            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+                            mat.setTexture("Texture", assetManager.loadTexture("Effects/Explosion/Debris.png"));
+                            debris.setMaterial(mat);
+                            debris.emitAllParticles();
+                            rootNode.attachChild(debris);
+
                             guiNode.detachChild(uiText);
                             ch.setColor(ColorRGBA.randomColor());
-                            ch.setText("Bravo !! tu as trouvé un mot de "+frappe+ " lettres avant la fin");
+                            ch.setText("Bravo !! tu as trouvé le mot "+mot+" composé de "+frappe+ " lettres avant la fin");
                             explose(vects);
                         }
                     }

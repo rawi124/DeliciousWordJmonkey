@@ -2,6 +2,8 @@ package fr.utln.jmonkey.tutorials.beginner;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
+import com.jme3.audio.AudioData;
+import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResult;
@@ -20,17 +22,10 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
-import com.jme3.app.FlyCamAppState;
-import com.jme3.app.SimpleApplication;
 import com.jme3.font.BitmapFont;
-import com.jme3.font.BitmapText;
-import com.jme3.system.AppSettings;
-
-import static java.lang.Math.random;
 
 /**
  * Example 12 - how to give objects physical properties so they bounce and fall.
@@ -46,9 +41,10 @@ public class HelloPhysics extends SimpleApplication {
         app.setSettings(settings);
         app.start();
     }
-    final static float TOTAL_SECOND = 30;
+    static float TOTAL_SECOND = 25;
+    private AudioNode audio;
     float timeInSecond;
-    final static String FORMAT = "Le jeu sera fini dans  %.1fs.";
+    final static String FORMAT = "Timer:   %.1fs.";
     BitmapText uiText;
     private BulletAppState bulletAppState;
     private Material wall_mat;
@@ -62,7 +58,7 @@ public class HelloPhysics extends SimpleApplication {
     private static final float brickWidth  = 0.20f;
     private static final float brickHeight = 0.20f;
 
-    private static int Max = 6 ;
+    private static int Max = 14 ;
     private static int Min = 3 ;
     private static int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
     private static int nMur = nombreAleatoire*10;
@@ -70,13 +66,13 @@ public class HelloPhysics extends SimpleApplication {
     private Material[] wall_mats = new Material[nMur];
     private String mot = "";
     private String alph = "abcdefghijklmnopqrstuvwxyz";
-
     private Geometry[] gemotries = new Geometry[nMur];
-
     private Vector3f[] vects = new Vector3f[nMur];
 
     private BitmapText ch ;
-    private int xm, ym ;
+    private double xm;
+    private int ym;
+    private int zm ;
 
     private int[] names = new int[nMur];
     static {
@@ -102,7 +98,7 @@ public class HelloPhysics extends SimpleApplication {
         rootNode.attachChild(shootables);
 
         /** Configure cam to look at scene */
-        cam.setLocation(new Vector3f(0, 4f, 6f));
+        cam.setLocation(new Vector3f(-1, 2f, 6f));
         cam.lookAt(new Vector3f(1, 2, 0), Vector3f.UNIT_Y);
         /** Initialize the scene, materials, inputs, and physics space */
         initMark();
@@ -135,6 +131,10 @@ public class HelloPhysics extends SimpleApplication {
         mark_mat.setTexture("ColorMap", texture);
         mark.setMaterial(mark_mat);
 
+
+
+
+
     }
     private void initKeys() {
         inputManager.addMapping("Shoot",
@@ -142,12 +142,24 @@ public class HelloPhysics extends SimpleApplication {
                 new MouseButtonTrigger(MouseInput.BUTTON_LEFT)); // trigger 2: left-button click
         inputManager.addListener(actionListener, "Shoot");
     }
+
+    private void soundEffect(String s){
+        audio= new AudioNode(assetManager, "Sound/Effects/"+s+".wav", AudioData.DataType.Buffer);
+        audio.setPositional(false);
+        audio.setLooping(false);
+        audio.setVolume(2);
+        rootNode.attachChild(audio);
+        audio.playInstance(); // play each instance once!
+    }
+
+
     /** Defining the "Shoot" action: Determine what was hit and how to respond. */
     final private ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("Shoot") && !keyPressed) {
                 frappe ++ ;
+                soundEffect("spash");
                 // 1. Reset results list.
                 CollisionResults results = new CollisionResults();
                 // 2. Aim the ray from cam loc to cam direction.
@@ -170,11 +182,10 @@ public class HelloPhysics extends SimpleApplication {
                     wall_mat.setTexture("ColorMap", tex);
                     brick_geo.setMaterial(wall_mat);
                     shootables.attachChild(brick_geo);
-                    Vector3f vt = new Vector3f(xm ,ym, 0);
-                    xm += 0.95 ;
+                    xm = xm + 0.4f ;
+                    Vector3f vt = new Vector3f((float) xm,ym, 0);
                     brick_geo.setLocalTranslation(vt);
                     if(frappe == nombreAleatoire){
-
                         if(!VerifMot.verif(mot)){
                             ParticleEmitter fire =
                                     new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 25);
@@ -195,13 +206,15 @@ public class HelloPhysics extends SimpleApplication {
                             fire.setHighLife(4f);
                             fire.getParticleInfluencer().setVelocityVariation(0.3f);
                             rootNode.attachChild(fire);
-
+                            soundEffect("perd");
                             ch.setColor(ColorRGBA.randomColor());
                             ch.setText("Perdu !! tu n'as pas reussi à trouver  un mot de "+frappe+" lettres !");
                             guiNode.detachChild(uiText);
+                            TOTAL_SECOND += 1000000 ;
                             disparait(vects);
                         }
                         else {
+                            soundEffect("vic");
                             ParticleEmitter debris ;
                             debris = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 700 );
                             debris.setSelectRandomImage(true);
@@ -211,8 +224,6 @@ public class HelloPhysics extends SimpleApplication {
                             debris.setEndColor(new ColorRGBA(.5f, 0.5f, 0.5f, 0f));
                             debris.setStartSize(.2f);
                             debris.setEndSize(.2f);
-
-//        debris.setShape(new EmitterSphereShape(Vector3f.ZERO, .05f));
                             debris.setParticlesPerSec(0);
                             debris.setGravity(0, 12f, 0);
                             debris.setLowLife(1.4f);
@@ -227,10 +238,12 @@ public class HelloPhysics extends SimpleApplication {
                             debris.setMaterial(mat);
                             debris.emitAllParticles();
                             rootNode.attachChild(debris);
+                            TOTAL_SECOND += 1000000 ;
 
                             guiNode.detachChild(uiText);
                             ch.setColor(ColorRGBA.randomColor());
                             ch.setText("Bravo !! tu as trouvé le mot "+mot+" composé de "+frappe+ " lettres avant la fin");
+
                             explose(vects);
                         }
                     }

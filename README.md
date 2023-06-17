@@ -12,3 +12,6 @@ saisir les commandes suivantes :
 ## Résumé 
 
 Ceci est un simple jeu qui utilise la bibliothéque Jmonkey de java, pour gagner la partie il faut trouver un mot en francais dans la grille dans la limite du temps disponible.
+
+![partie perdue](3.png)
+![partie gagnée](5.png)

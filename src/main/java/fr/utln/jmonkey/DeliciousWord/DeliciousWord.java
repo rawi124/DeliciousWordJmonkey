@@ -1,4 +1,4 @@
-package fr.utln.jmonkey.tutorials.beginner;
+package fr.utln.jmonkey.DeliciousWord;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
@@ -27,17 +27,12 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.font.BitmapFont;
 
-/**
- * Example 12 - how to give objects physical properties so they bounce and fall.
- * @author base code by double1984, updated by zathras
- */
-public class HelloPhysics extends SimpleApplication {
+public class DeliciousWord extends SimpleApplication {
 
     public static void main(String args[]) {
         AppSettings settings = new AppSettings(true);
         settings.setTitle("DeliciousWord");
-
-        HelloPhysics app = new HelloPhysics();
+        DeliciousWord app = new DeliciousWord();
         app.setSettings(settings);
         app.start();
     }
@@ -52,13 +47,11 @@ public class HelloPhysics extends SimpleApplication {
     private static final Box    box;
     private static  Sphere sphere;
     private static final Box    floor;
-
-    /** dimensions used for bricks and wall */
     private static final float brickLength = 0.20f;
     private static final float brickWidth  = 0.20f;
     private static final float brickHeight = 0.20f;
 
-    private static int Max = 14 ;
+    private static int Max = 3 ;
     private static int Min = 3 ;
     private static int nombreAleatoire = Min + (int)(Math.random() * ((Max - Min) + 1));
     private static int nMur = nombreAleatoire*10;
@@ -68,39 +61,27 @@ public class HelloPhysics extends SimpleApplication {
     private String alph = "abcdefghijklmnopqrstuvwxyz";
     private Geometry[] gemotries = new Geometry[nMur];
     private Vector3f[] vects = new Vector3f[nMur];
-
     private BitmapText ch ;
     private double xm;
     private int ym;
     private int zm ;
-
-    private int[] names = new int[nMur];
-    static {
-        /** Initialize the cannon ball geometry */
-        //sphere = new Sphere(32, 32, 0.4f, true, false);
-        //sphere.setTextureMode(TextureMode.Projected);
-        /** Initialize the brick geometry */
-        box = new Box(brickLength, brickHeight, brickWidth);
-        box.scaleTextureCoordinates(new Vector2f(1f, 1f));
-        /** Initialize the floor geometry */
-        floor = new Box(10f, 0.1f, 5f);
-        //floor.scaleTextureCoordinates(new Vector2f(2, 6));
-    }
     private Geometry mark;
     private Node shootables;
+    private int[] names = new int[nMur];
+    static {
+        box = new Box(brickLength, brickHeight, brickWidth);
+        box.scaleTextureCoordinates(new Vector2f(1f, 1f));
+        floor = new Box(10f, 0.1f, 5f);
+    }
+
     @Override
     public void simpleInitApp() {
-        /** Set up Physics Game */
         bulletAppState = new BulletAppState();
-        //bulletAppState.setDebugEnabled(true);
         stateManager.attach(bulletAppState);
         shootables = new Node("Shootables");
         rootNode.attachChild(shootables);
-
-        /** Configure cam to look at scene */
         cam.setLocation(new Vector3f(-1, 2f, 6f));
         cam.lookAt(new Vector3f(1, 2, 0), Vector3f.UNIT_Y);
-        /** Initialize the scene, materials, inputs, and physics space */
         initMark();
         initMaterials();
         initWall();
@@ -113,11 +94,8 @@ public class HelloPhysics extends SimpleApplication {
         annance.setSize(guiFont.getCharSet().getRenderedSize());
         annance.setText("essayer de trouver un mot de "+nombreAleatoire+" de lettres dans cette grille de "+nMur+" lettres");
         annance.setLocalTranslation(800, 1000, 0);
-
         timeInSecond = 0;
-
         BitmapFont fnt = assetManager.loadFont("Interface/Fonts/Default.fnt");
-
         uiText = new BitmapText(fnt, false);
         uiText.setText(String.format(FORMAT, TOTAL_SECOND-timeInSecond));
         guiNode.attachChild(uiText);
@@ -130,45 +108,31 @@ public class HelloPhysics extends SimpleApplication {
         Texture texture = assetManager.loadTexture("Textures/bon.jpg");
         mark_mat.setTexture("ColorMap", texture);
         mark.setMaterial(mark_mat);
-
-
-
-
-
     }
     private void initKeys() {
         inputManager.addMapping("Shoot",
-                new KeyTrigger(KeyInput.KEY_SPACE), // trigger 1: spacebar
-                new MouseButtonTrigger(MouseInput.BUTTON_LEFT)); // trigger 2: left-button click
+                new KeyTrigger(KeyInput.KEY_SPACE),
+                new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addListener(actionListener, "Shoot");
     }
-
     private void soundEffect(String s){
         audio= new AudioNode(assetManager, "Sound/Effects/"+s+".wav", AudioData.DataType.Buffer);
         audio.setPositional(false);
         audio.setLooping(false);
         audio.setVolume(2);
         rootNode.attachChild(audio);
-        audio.playInstance(); // play each instance once!
+        audio.playInstance();
     }
-
-
-    /** Defining the "Shoot" action: Determine what was hit and how to respond. */
     final private ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
             if (name.equals("Shoot") && !keyPressed) {
                 frappe ++ ;
                 soundEffect("spash");
-                // 1. Reset results list.
                 CollisionResults results = new CollisionResults();
-                // 2. Aim the ray from cam loc to cam direction.
                 Ray ray = new Ray(cam.getLocation(), cam.getDirection());
-                // 3. Collect intersections between Ray and Shootables in results list.
                 shootables.collideWith(ray, results);
-                // 4. Print the results
                 if (results.size() > 0) {
-                    // For each hit, we know distance, impact point, name of geometry.
                     String hit = results.getCollision(0).getGeometry().getName();
                     int x = Integer.parseInt(hit);
                     mot = mot + alph.charAt(x);
@@ -195,7 +159,7 @@ public class HelloPhysics extends SimpleApplication {
                                     "Effects/Explosion/flame.png"));
                             fire.setMaterial(mat_red);
                             fire.setImagesX(2);
-                            fire.setImagesY(2); // 2x2 texture animation
+                            fire.setImagesY(2);
                             fire.setEndColor(ColorRGBA.randomColor());
                             fire.setStartColor(ColorRGBA.randomColor());
                             fire.getParticleInfluencer().setInitialVelocity(new Vector3f(-1, 2, 0));
@@ -239,30 +203,23 @@ public class HelloPhysics extends SimpleApplication {
                             debris.emitAllParticles();
                             rootNode.attachChild(debris);
                             TOTAL_SECOND += 1000000 ;
-
                             guiNode.detachChild(uiText);
                             ch.setColor(ColorRGBA.randomColor());
                             ch.setText("Bravo !! tu as trouvé le mot "+mot+" composé de "+frappe+ " lettres avant la fin");
-
                             explose(vects);
                         }
                     }
                 }
-                // 5. Use the results (we mark the hit object)
                 if (results.size() > 0) {
-                    // The closest collision point is what was truly hit:
                     CollisionResult closest = results.getClosestCollision();
-                    // Let's interact - we mark the hit with a red dot.
                     mark.setLocalTranslation(closest.getContactPoint());
                     rootNode.attachChild(mark);
                 } else {
-                    // No hits? Then remove the red mark.
                     rootNode.detachChild(mark);
                 }
             }
         }
     };
-    /** Initialize the materials used in this scene. */
     public void initMaterials() {
         TextureKey key;
         Texture tex;
@@ -285,7 +242,6 @@ public class HelloPhysics extends SimpleApplication {
         tex3.setWrap(WrapMode.Repeat);
         floor_mat.setTexture("ColorMap", tex3);
     }
-    /** Make a solid floor and add it to the scene. */
     public void initFloor() {
         Geometry floor_geo = new Geometry("Floor", floor);
         floor_geo.setMaterial(floor_mat);
@@ -296,7 +252,6 @@ public class HelloPhysics extends SimpleApplication {
         floor_geo.addControl(floor_phy);
         bulletAppState.getPhysicsSpace().add(floor_phy);
     }
-    /** This loop builds a wall out of individual bricks. */
     public void initWall() {
         float startX = brickLength / 4 - 2;
         float height = 0;
@@ -312,7 +267,6 @@ public class HelloPhysics extends SimpleApplication {
             height += 2 * brickHeight;
         }
     }
-    /** Creates one physical brick.2 */
     private void makeBrick(Vector3f loc, Material mat, int name, int tmp) {
         Geometry brick_geo = new Geometry(Integer.toString(name), box);
         brick_geo.setMaterial(mat);
@@ -330,10 +284,8 @@ public class HelloPhysics extends SimpleApplication {
                 Vector3f vt = new Vector3f(i * brickLength * 2 + startX, brickHeight + height , 1);
                 gemotries[tmp].setLocalTranslation(vt);
                 RigidBodyControl brick_phy = new RigidBodyControl(2f);
-                /** Add physical brick to physics space. */
                 gemotries[tmp].addControl(brick_phy);
                 bulletAppState.getPhysicsSpace().add(brick_phy);
-                /** Add physical brick to physics space. */
                 tmp ++ ;
             }
             height += 1.5 * brickHeight;
@@ -349,39 +301,29 @@ public class HelloPhysics extends SimpleApplication {
                 Vector3f vt = new Vector3f(i * brickLength * 100 + startX, brickHeight + height , 100);
                 gemotries[tmp].setLocalTranslation(vt);
                 RigidBodyControl brick_phy = new RigidBodyControl(2f);
-                /** Add physical brick to physics space. */
                 gemotries[tmp].addControl(brick_phy);
                 bulletAppState.getPhysicsSpace().add(brick_phy);
-                /** Add physical brick to physics space. */
                 tmp ++ ;
             }
             height += 100 * brickHeight;
         }
     }
-    /** A plus sign used as crosshairs to help the player with aiming.*/
     private void initCrossHairs() {
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
         ch = new BitmapText(guiFont);
         ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
-        //ch.setColor("Color", ColorRGBA.Black); // changer la couleur en noir
-        ch.setText("+"); // croix
-        ch.setLocalTranslation( // centrer
+        ch.setText("+");
+        ch.setLocalTranslation(
                 settings.getWidth() / 2 - ch.getLineWidth()/2, settings.getHeight() / 2 + ch.getLineHeight()/2, 0);
         guiNode.attachChild(ch);
     }
     @Override
     public void simpleUpdate(float tpf) {
-
         timeInSecond += tpf;
         uiText.setText(String.format(FORMAT, TOTAL_SECOND-timeInSecond));
         uiText.setLocalTranslation(500, 1000, 0);
-        // update gui
-
         if (timeInSecond >= TOTAL_SECOND) {
             stop();
         }
     }
-
-
-
 }
